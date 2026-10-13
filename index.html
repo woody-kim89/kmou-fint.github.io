@@ -113,6 +113,7 @@ section{scroll-margin-top:72px}
 .sh h2 .ko{font-family:var(--sans);font-size:15px;margin-top:10px;letter-spacing:0}
 .sh p{max-width:62ch;color:var(--ink2)}
 .sh p .ko{margin-top:6px}
+.sh .kw{white-space:nowrap}
 
 /* 소개 */
 .about{display:grid;grid-template-columns:260px 1fr 1fr;gap:40px}
@@ -203,6 +204,8 @@ td.when{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink2);w
 .filters button{background:none;border:none;padding:4px 0;font-size:15px;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent}
 .filters button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--magenta)}
 .filters button span{color:var(--ink3);font-variant-numeric:tabular-nums;margin-left:4px}
+.pub-empty{padding:24px 0;max-width:62ch;color:var(--ink2)}
+.pub-empty .ko{display:block;margin-top:6px}
 .year{display:grid;grid-template-columns:120px 1fr;gap:24px;padding:22px 0;border-bottom:1px solid var(--rule)}
 .year > h3{font-style:italic;font-weight:400;font-size:34px;line-height:1;color:var(--chart)}
 .pub + .pub{margin-top:20px}
@@ -367,7 +370,7 @@ footer .disclaimer{font-family:var(--serif);font-style:italic;text-align:right;m
 
   <!-- ================= 논문 ================= -->
   <section id="publications" class="wrap sec">
-    <div class="sh"><h2>Publications<span class="ko">논문 및 특허</span></h2><p id="pub-intro"></p></div>
+    <div class="sh"><h2>Publications<span class="ko">논문</span></h2><p id="pub-intro"></p></div>
     <div class="pub-figs">
       <figure><h3>Papers by year</h3><div id="fig-years"></div><div class="legend" id="fig-legend"></div></figure>
       <figure><h3>Where we publish</h3><ul class="jlist" id="fig-journals"></ul><p class="small" id="fig-jcr" style="margin-top:12px"></p></figure>
@@ -448,8 +451,8 @@ const LAB = {
     "전산유체역학(CFD)을 활용한 선박 조종운동 해석과 선박 충돌회피 연구를 연계하여, 선박의 운동 특성을 고려한 안전 운항 기술을 개발합니다.",
     "이를 통해 자율운항선박을 포함한 다양한 선박의 항해 안전성 향상에 기여하고자 합니다."
   ],
-  researchIntro: "Two lines of work share one question: can this ship, in this water, actually make the manoeuvre the situation calls for?",
-  researchIntroKo: "두 연구는 하나의 질문을 공유합니다. 이 선박이 이 해역에서, 상황이 요구하는 조종을 실제로 해낼 수 있는가?",
+  researchIntro: "CFD manoeuvring · Collision avoidance · COLREGs · MASS · Safe navigation",
+  researchIntroKo: "CFD 조종운동 해석 · 충돌회피 · COLREG · 자율운항선박 · 안전 운항",
   /* 지원 양식 전송 방식
      - 비워 두면: 지원자의 메일 앱이 열리고 내용이 채워진 상태로 두 교수님 주소가 수신인에 들어갑니다. (설정 필요 없음)
      - Formspree 등 폼 서비스 주소를 넣으면 (예: "https://formspree.io/f/xxxxxxxx"): 사이트에서 바로 전송되고 교수님 메일로 도착합니다. */
@@ -553,7 +556,7 @@ const MEMBERS = [
 /* 논문·특허 목록
    type  : "journal" | "conference" | "patent"
    index : "SCIE" | "SCOPUS" | "KCI"  (학술지만)
-   jcr   : 게재 당시 학술지의 JCR 백분위(%). 예) 7.4  → 상위 10% 이내로 집계
+   jcr   : 게재 당시 학술지의 JCR 백분위(%). 예) 4.2 → 'JCR 5%' 탭에 표시 (5 이하)
            모르면 ""로 비워 둡니다(집계에서 '미입력'으로 표시).
    venue : 첫 쉼표 앞부분이 학술지명으로 인식되어 통계에 쓰입니다.
    authors: 연구실 구성원은 **이름** 으로 감싸면 굵게 표시됩니다
@@ -681,7 +684,9 @@ $("#facts").innerHTML = `
   <dt>Laboratory · 연구실</dt><dd>${esc(LAB.building)}, ${esc(LAB.labRooms)}<br>${esc(LAB.buildingKo)} ${esc(LAB.labRoomsKo)}</dd>`;
 
 /* ---------- 연구 ---------- */
-$("#research-intro").innerHTML = `${esc(LAB.researchIntro)}${ko(LAB.researchIntroKo)}`;
+/* 연구 키워드: " · "로 구분, 키워드 중간에서 줄이 바뀌지 않게 묶음 */
+const kw = s => s.split(" · ").map(k => `<span class="kw">${esc(k)}</span>`).join(" · ");
+$("#research-intro").innerHTML = `${kw(LAB.researchIntro)}<span class="ko">${kw(LAB.researchIntroKo)}</span>`;
 const DRAW = {
   /* 정면 선도(body plan): 왼쪽 선미부, 오른쪽 선수부 단면 */
   hull: () => {
@@ -771,6 +776,7 @@ const scie = journals.filter(p => p.index === "SCIE");
 const kci = journals.filter(p => p.index === "KCI");
 const patents = PUBS.filter(p => p.type === "patent");
 const band = p => { const v = parseFloat(p.jcr); return isNaN(v) ? "none" : v <= 10 ? "top10" : v <= 20 ? "top20" : "over20"; };
+const isTop5 = p => p.index === "SCIE" && parseFloat(p.jcr) <= 5;   // JCR 상위 5% 이내
 const years0 = PUBS.map(p => p.year);
 const firstYear = Math.min(...years0);
 $("#pub-intro").innerHTML = `${scie.length} SCIE and ${kci.length} KCI journal papers${patents.length ? ` and ${patents.length} patents` : ""} since ${firstYear}.` +
@@ -804,24 +810,25 @@ $("#pub-intro").innerHTML = `${scie.length} SCIE and ${kci.length} KCI journal p
   const rows = Object.entries(counts).sort((a,b) => b[1]-a[1]);
   const max = rows.length ? rows[0][1] : 1;
   $("#fig-journals").innerHTML = rows.map(([j,n]) => `<li><span>${esc(j)}</span><span class="n">${n}</span><span class="bar"><i style="width:${n/max*100}%"></i></span></li>`).join("");
-  const top10 = scie.filter(p => band(p) === "top10").length, entered = scie.filter(p => band(p) !== "none").length;
-  $("#fig-jcr").textContent = entered ? `${top10} of ${scie.length} SCIE papers appeared in journals ranked in the JCR top 10% in their year of publication.` : "SCIE papers only.";
+  const top5 = scie.filter(isTop5).length, entered = scie.filter(p => band(p) !== "none").length;
+  $("#fig-jcr").textContent = entered ? `${top5} of ${scie.length} SCIE papers appeared in journals ranked in the JCR top 5% in their year of publication.` : "SCIE papers only.";
 })();
 
-let filter = "all";
+/* 논문 목록 탭: SCIE PAPER · JCR 5% · KCI PAPER 세 가지로만 구성 */
+let filter = "SCIE";
 const FILTERS = [
-  ["all","All", p => true],
-  ["SCIE","SCIE", p => p.index === "SCIE"],
-  ["top10","JCR top 10%", p => p.index === "SCIE" && band(p) === "top10"],
-  ["SCOPUS","SCOPUS", p => p.index === "SCOPUS"],
-  ["KCI","KCI", p => p.index === "KCI"],
-  ["conference","Conference", p => p.type === "conference"],
-  ["patent","Patents", p => p.type === "patent"]
+  ["SCIE","SCIE PAPER", p => p.type === "journal" && p.index === "SCIE"],
+  ["top5","JCR 5%", p => p.type === "journal" && isTop5(p)],
+  ["KCI","KCI PAPER", p => p.type === "journal" && p.index === "KCI"]
 ];
+const EMPTY = {
+  top5: `No papers in JCR top 5% journals yet. Enter each journal's JCR percentile (jcr) in the publication list and papers at 5% or below appear here.<span class="ko">JCR 상위 5% 이내로 입력된 논문이 아직 없습니다. 논문 목록의 jcr 값에 게재 연도의 JCR 백분위를 입력하면 5% 이하인 논문이 이 탭에 표시됩니다.</span>`
+};
 function renderPubs(){
-  $("#filters").innerHTML = FILTERS.map(([k,l,f]) => [k,l,PUBS.filter(f).length]).filter(([,,n]) => n > 0)
-    .map(([k,l,n]) => `<button type="button" data-k="${k}" aria-pressed="${filter===k}">${l}<span>${n}</span></button>`).join("");
+  $("#filters").innerHTML = FILTERS.map(([k,l,f]) =>
+    `<button type="button" data-k="${k}" aria-pressed="${filter===k}">${l}<span>${PUBS.filter(f).length}</span></button>`).join("");
   const list = PUBS.filter(FILTERS.find(x => x[0] === filter)[2]);
+  if (!list.length) { $("#pubs").innerHTML = `<p class="pub-empty">${EMPTY[filter] || "No papers yet.<span class=\"ko\">등록된 논문이 없습니다.</span>"}</p>`; return; }
   const yrs = [...new Set(list.map(p => p.year))].sort((a,b) => b-a);
   const tagOf = p => [
     p.type === "patent" ? `<em>Patent</em>` : p.type === "conference" ? `<em>Conference</em>` : "",
