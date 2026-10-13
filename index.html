@@ -155,6 +155,7 @@ a.stat:hover b{color:var(--signal)}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
 .filters button{font:inherit;font-size:14px;padding:6px 14px;border-radius:20px;border:1px solid var(--depth);background:transparent;color:var(--ink);cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pub-empty{padding:24px 0;border-top:1px solid var(--chart);color:var(--ink);max-width:760px}
 .year{display:grid;grid-template-columns:90px 1fr;gap:24px;padding:24px 0;border-top:1px solid var(--chart)}
 .year>strong{font-size:22px;font-weight:600;color:var(--sounding)}
 .pub{padding:0 0 18px}
@@ -348,8 +349,8 @@ footer .left{display:flex;align-items:center;gap:14px}
   <section id="publications">
     <div class="wrap">
       <div class="page-head">
-        <h1>Publications &amp; patents</h1>
-        <p>논문 및 특허</p>
+        <h1>Publications</h1>
+        <p>논문</p>
       </div>
       <p class="pub-summary" id="pub-summary"></p>
       <p><a href="#metrics">Publication metrics · 논문 통계 보기</a></p>
@@ -574,7 +575,7 @@ const MEMBERS = [
 /* 논문·특허 목록
    type  : "journal" | "conference" | "patent"
    index : "SCIE" | "SCOPUS" | "KCI"  (학술지만)
-   jcr   : 게재 당시 학술지의 JCR 백분위(%). 예) 7.4  → 상위 10% 이내로 집계
+   jcr   : 게재 당시 학술지의 JCR 백분위(%). 예) 4.2 → 'JCR 5%' 탭에 표시 (5 이하)
            모르면 ""로 비워 둡니다(집계에서 '미입력'으로 표시).
    venue : 첫 쉼표 앞부분이 학술지명으로 인식되어 통계에 쓰입니다.
    authors: 연구실 구성원은 **이름** 으로 감싸면 굵게 표시됩니다 */
@@ -681,10 +682,12 @@ const BANDS = [
   ["none","Percentile not entered","백분위 미입력","#DDEAEF"]
 ];
 const bandCount = k => scie.filter(p => band(p) === k).length;
+const isTop5 = p => p.index === "SCIE" && parseFloat(p.jcr) <= 5;   // JCR 상위 5% 이내
+const top5 = scie.filter(isTop5);
 
 const STATS = [
   { n: scie.length, en:"SCIE papers", ko:"SCIE 논문", href:"#metrics" },
-  { n: bandCount("top10"), en:"in JCR 5% journals", ko:"JCR 상위 5% 이내", href:"#metrics" },
+  { n: top5.length, en:"in JCR 5% journals", ko:"JCR 상위 5% 이내", href:"#metrics" },
   { n: journals.filter(p => p.index === "KCI").length, en:"KCI papers", ko:"KCI 논문" },
   { n: PUBS.filter(p => p.type === "patent").length, en:"Patents", ko:"특허" },
   { n: AWARDS.filter(a => !a.title.startsWith("[")).length, en:"Awards", ko:"수상", href:"#awards" }
@@ -696,9 +699,8 @@ $("#stats-note").innerHTML = `Counted from the publication list. <a href="#metri
   (notEntered ? ` · JCR percentile not yet entered for ${notEntered} paper${notEntered > 1 ? "s" : ""}.` : "") +
   `<br><span class="ko">논문 목록을 기준으로 자동 집계됩니다.${notEntered ? ` JCR 백분위가 입력되지 않은 논문 ${notEntered}편.` : ""}</span>`;
 $("#pub-summary").textContent = `${scie.length} SCIE papers` +
-  (bandCount("top10") ? ` (${bandCount("top10")} in JCR top 10% journals)` : "") +
-  ` · ${journals.filter(p => p.index === "KCI").length} KCI papers` +
-  (PUBS.some(p => p.type === "patent") ? ` · ${PUBS.filter(p => p.type === "patent").length} patents` : "");
+  (top5.length ? ` (${top5.length} in JCR 5% journals)` : "") +
+  ` · ${journals.filter(p => p.index === "KCI").length} KCI papers`;
 
 /* ---------- 연구 분야 ---------- */
 const piByKo = ko => MEMBERS.find(m => m.group === "pi" && m.ko === ko);
@@ -759,30 +761,27 @@ $("#members-list").innerHTML = GROUPS.map(([key,en,ko]) => {
 }).join("");
 
 /* ---------- 논문 목록 ---------- */
-let filter = "all";
+/* Publications 탭: SCIE PAPER · JCR 5% · KCI PAPER 세 가지로만 구성 */
+let filter = "SCIE";
 const FILTERS = [
-  ["all","All · 전체", p => true],
-  ["SCIE","SCIE", p => p.index === "SCIE"],
-  ["top10","JCR top 10%", p => p.index === "SCIE" && band(p) === "top10"],
-  ["top20","JCR 10–20%", p => p.index === "SCIE" && band(p) === "top20"],
-  ["over20","JCR beyond 20%", p => p.index === "SCIE" && band(p) === "over20"],
-  ["KCI","KCI · 국내", p => p.index === "KCI"],
-  ["conference","Conference · 학술대회", p => p.type === "conference"],
-  ["patent","Patent · 특허", p => p.type === "patent"]
+  ["SCIE","SCIE PAPER", p => p.type === "journal" && p.index === "SCIE"],
+  ["top5","JCR 5%", p => p.type === "journal" && isTop5(p)],
+  ["KCI","KCI PAPER", p => p.type === "journal" && p.index === "KCI"]
 ];
+const EMPTY = {
+  top5: `No papers in JCR top 5% journals yet. Enter each journal's JCR percentile (jcr) in the publication list and papers at 5% or below appear here.<br><span class="ko">JCR 상위 5% 이내로 입력된 논문이 아직 없습니다. 논문 목록의 jcr 값에 게재 연도의 JCR 백분위를 입력하면 5% 이하인 논문이 이 탭에 표시됩니다.</span>`
+};
 function renderPubs(){
-  $("#filters").innerHTML = FILTERS.map(([k,l,f]) => [k,l,PUBS.filter(f).length])
-    .filter(([k,,n]) => n > 0)
-    .map(([k,l,n]) => `<button data-k="${k}" aria-pressed="${filter===k}">${l} (${n})</button>`).join("");
+  $("#filters").innerHTML = FILTERS.map(([k,l,f]) =>
+    `<button data-k="${k}" aria-pressed="${filter===k}">${l} (${PUBS.filter(f).length})</button>`).join("");
   const f = FILTERS.find(x => x[0] === filter)[2];
   const list = PUBS.filter(f);
   const years = [...new Set(list.map(p => p.year))].sort((a,b) => b-a);
   const badges = p => [
-    p.type === "patent" ? `<span class="kind patent">Patent</span>` : "",
-    p.type === "conference" ? `<span class="kind">Conference</span>` : "",
     p.index ? `<span class="kind">${esc(p.index)}</span>` : "",
     p.index === "SCIE" && band(p) !== "none" ? `<span class="kind jcr">JCR ${esc(p.jcr)}%</span>` : ""
   ].join("");
+  if (!list.length) { $("#pubs").innerHTML = `<p class="pub-empty">${EMPTY[filter] || "No papers yet. · 등록된 논문이 없습니다."}</p>`; return; }
   $("#pubs").innerHTML = years.map(y => `
     <div class="year"><strong>${y}</strong><div>${list.filter(p => p.year===y).map(p => `
       <div class="pub">
