@@ -546,8 +546,8 @@ const PROJECTS = [
 /* group   : "pi" | "researcher"(연구원) | "postdoc"(박사후연구원) | "phd"(박사과정) | "ms"(석사과정) | "alumni"(졸업생)
    연구원·대학원생 카드에 쓰이는 항목 (모두 선택, 비우면 그 줄은 표시되지 않음)
    degree  : 영문 이름 앞에 붙는 학위 (예: "M.Sc.", "B.Sc.")
-   position: 직장·직책 (예: "Chief Officer / HMM")
-   office  : 자리 (예: "Room 414, Ocean Science Bldg.")
+   position: 직장·직책 (예: "Chief Officer / HMM Co., Ltd") — 비우면 과정이 표시됨 (예: "M.S. Student / FINT Lab, KMOU")
+   office  : 자리 (예: "Room 414, Maritime College Bldg.") — 비우면 연구실 위치가 표시됨
    interest: 관심 분야          email: 이메일
    photo   : "img/people/파일명.jpg" — 사진이 없으면 이름 이니셜이 표시됩니다 */
 const MEMBERS = [
@@ -819,6 +819,10 @@ const MGROUPS = [
   ["ms","Students (Master's course)","석사과정","M.S. course"],
   ["alumni","Alumni","졸업생","Alumni"]
 ];
+/* position·office를 비워 두었을 때 표시되는 기본값 */
+const DEFAULT_POSITION = { researcher:"Researcher", postdoc:"Postdoctoral Researcher", phd:"Ph.D. Student", ms:"M.S. Student" };
+const mPosition = m => !blank(m.position) ? m.position : DEFAULT_POSITION[m.group] ? `${DEFAULT_POSITION[m.group]} / ${LAB.name} Lab, KMOU` : "";
+const mOffice = m => !blank(m.office) ? m.office : m.group === "alumni" ? "" : `${LAB.labRooms}, ${LAB.building}`;
 const mInitials = m => {
   if (!blank(m.name)) return esc(m.name.split(/[\s-]+/).filter(Boolean).slice(0,2).map(w => w[0].toUpperCase()).join(""));
   return blank(m.ko) ? "" : esc(m.ko.length > 2 ? m.ko.slice(1) : m.ko);
@@ -835,9 +839,9 @@ $("#students").innerHTML = MGROUPS.map(([g,en,koName,level]) => {
         <p class="lv">${level}</p>
         <p class="nm"><b>${esc(m.ko)}</b>${blank(m.name) ? "" : `<span>${blank(m.degree) ? "" : esc(m.degree) + " "}${esc(m.name)}</span>`}</p>
         <dl>
-          ${mRow("Position", m.position)}
+          ${mRow("Position", mPosition(m))}
+          ${mRow("Office", mOffice(m))}
           ${mRow("Interests", m.interest)}
-          ${mRow("Office", m.office)}
           ${mRow("E-mail", m.email, blank(m.email) ? "" : `<a href="mailto:${esc(m.email)}">${esc(m.email)}</a>`)}
         </dl>
       </div></article>`).join("")}</div></div>`;
