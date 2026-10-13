@@ -182,10 +182,25 @@ td.when{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink2);w
 .cv h4{font-family:var(--serif);font-style:italic;font-weight:500;font-size:16px;margin:8px 0 4px}
 .cv li{display:grid;grid-template-columns:118px 1fr;gap:10px;font-size:13.5px;color:var(--ink2);padding:5px 0;border-bottom:1px solid var(--rule);line-height:1.45}
 .cv li b{font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
-.students{margin-top:64px}
-.students h3{font-size:24px;margin-bottom:16px}
-.students td:first-child{width:220px}
-.students .name{font-weight:500}
+/* 연구원·대학원생 카드 */
+.students{margin-top:72px}
+.mgroup + .mgroup{margin-top:56px}
+.mgroup-h{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+.mgroup-h h3{font-size:24px;padding-left:14px;border-left:3px solid var(--magenta);line-height:1.15}
+.mgroup-h h3 .ko{display:inline;font-family:var(--sans);font-size:14.5px;margin-left:8px}
+.mgroup-h .count{font-size:13.5px;color:var(--ink3);white-space:nowrap;letter-spacing:.02em}
+.mgroup-h::after{content:"";flex:1;height:1px;background:var(--rule);align-self:center}
+.mcards{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.mcard{display:grid;grid-template-columns:88px 1fr;gap:20px;padding:22px;border:1px solid var(--rule);background:#fff}
+.mcard .ph{width:88px;height:88px;background:var(--tint);border:1px solid var(--rule);display:grid;place-items:center;font-family:var(--serif);font-size:24px;letter-spacing:.04em;color:var(--chart);overflow:hidden}
+.mcard .ph img{width:100%;height:100%;object-fit:cover;object-position:top}
+.mcard .lv{font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--magenta)}
+.mcard .nm{margin-top:4px;line-height:1.35}
+.mcard .nm b{font-size:19px;font-weight:600;letter-spacing:.18em;color:var(--ink)}
+.mcard .nm span{font-size:14.5px;color:var(--ink2);margin-left:4px}
+.mcard dl{display:grid;grid-template-columns:62px 1fr;gap:4px 12px;margin:10px 0 0;font-size:14.5px;line-height:1.5}
+.mcard dt{color:var(--ink3);font-size:13px;padding-top:1px}
+.mcard dd{margin:0;color:var(--ink2);word-break:break-word}
 
 /* 논문 */
 .pub-figs{display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-bottom:56px}
@@ -302,10 +317,12 @@ footer .disclaimer{font-family:var(--serif);font-style:italic;text-align:right;m
   .adv{grid-template-columns:96px 1fr;gap:16px}
   .portrait{width:96px}
   .year{grid-template-columns:1fr;gap:10px}
-  .students td:first-child{width:auto}
-  .students thead{display:none}
-  .students tr{display:block;padding:12px 0;border-bottom:1px solid var(--rule)}
-  .students td{display:block;border:none;padding:2px 0}
+  .mgroup-h{flex-direction:column;gap:6px}
+  .mgroup-h::after{display:none}
+  .mgroup-h .count{padding-left:17px}
+  .mcards{grid-template-columns:1fr}
+  .mcard{grid-template-columns:72px 1fr;gap:16px;padding:18px}
+  .mcard .ph{width:72px;height:72px;font-size:20px}
   td.when{width:100px}
   form{padding:20px}
   footer .wrap{grid-template-columns:auto 1fr}
@@ -526,8 +543,13 @@ const PROJECTS = [
   { title:"[과제명]", agency:"[지원기관]", period:"[기간]" }
 ];
 
-/* group: "pi" | "postdoc" | "phd" | "ms" | "alumni"
-   photo: "img/파일명.jpg" — 저장소의 img 폴더에 사진을 올리고 경로를 적으면 표시됩니다 (없으면 이니셜) */
+/* group   : "pi" | "researcher"(연구원) | "postdoc"(박사후연구원) | "phd"(박사과정) | "ms"(석사과정) | "alumni"(졸업생)
+   연구원·대학원생 카드에 쓰이는 항목 (모두 선택, 비우면 그 줄은 표시되지 않음)
+   degree  : 영문 이름 앞에 붙는 학위 (예: "M.Sc.", "B.Sc.")
+   position: 직장·직책 (예: "Chief Officer / HMM")
+   office  : 자리 (예: "Room 414, Ocean Science Bldg.")
+   interest: 관심 분야          email: 이메일
+   photo   : "img/people/파일명.jpg" — 사진이 없으면 이름 이니셜이 표시됩니다 */
 const MEMBERS = [
   { group:"pi", ko:"김대정", name:"Daejeong Kim", role:"Assistant Professor", roleKo:"조교수",
     field:"Ocean Engineering · Ship guidance, navigation and control; CFD simulation of floating-body motion and manoeuvring, gas dispersion",
@@ -568,10 +590,10 @@ const MEMBERS = [
       ["2009.03–2014.06","Deck officer, Hanjin Shipping (container, bulk, LNGC)"]
     ],
     tags:["Collision avoidance","MASS","AI","Cognitive science"] },
-  { group:"ms", ko:"김송현", name:"Woody Kim", role:"M.S. student", interest:"충돌 회피, AI", email:"woodykim89@g.kmou.ac.kr", photo:"" },
-  { group:"ms", ko:"김종윤", name:"[English name]", role:"M.S. student", interest:"[관심분야]", email:"", photo:"" },
-  { group:"ms", ko:"이형훈", name:"[English name]", role:"M.S. student", interest:"[관심분야]", email:"", photo:"" },
-  { group:"ms", ko:"황주원", name:"[English name]", role:"M.S. student", interest:"[관심분야]", email:"", photo:"" }
+  { group:"ms", ko:"김송현", name:"Woody Kim", degree:"", position:"", office:"", interest:"충돌 회피, AI", email:"woodykim89@g.kmou.ac.kr", photo:"" },
+  { group:"ms", ko:"김종윤", name:"[English name]", degree:"", position:"", office:"", interest:"[관심분야]", email:"", photo:"" },
+  { group:"ms", ko:"이형훈", name:"[English name]", degree:"", position:"", office:"", interest:"[관심분야]", email:"", photo:"" },
+  { group:"ms", ko:"황주원", name:"[English name]", degree:"", position:"", office:"", interest:"[관심분야]", email:"", photo:"" }
 ];
 
 /* 논문·특허 목록
@@ -767,7 +789,10 @@ $("#projects").innerHTML = realProjects.length ? `<h3>Projects <span class="ko" 
 const initial = m => blank(m.ko) ? "" : esc(m.ko.slice(0,1));
 const portrait = m => `<div class="portrait">${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.ko)}">` : initial(m)}</div>`;
 const students = MEMBERS.filter(m => m.group !== "pi");
-$("#people-intro").innerHTML = `Two advisors and ${students.length} graduate student${students.length === 1 ? "" : "s"}.<span class="ko">지도교수 ${pis.length}명, 대학원생 ${students.length}명</span>`;
+const nRes = students.filter(m => m.group === "researcher" || m.group === "postdoc").length;
+const nGrad = students.filter(m => m.group === "phd" || m.group === "ms").length;
+$("#people-intro").innerHTML = `Two advisors${nRes ? `, ${nRes} researcher${nRes === 1 ? "" : "s"}` : ""} and ${nGrad} graduate student${nGrad === 1 ? "" : "s"}.` +
+  `<span class="ko">지도교수 ${pis.length}명${nRes ? `, 연구원 ${nRes}명` : ""}, 대학원생 ${nGrad}명</span>`;
 $("#advisors").innerHTML = pis.map(m => `<article class="adv">
   ${portrait(m)}
   <div>
@@ -786,16 +811,37 @@ $("#advisors").innerHTML = pis.map(m => `<article class="adv">
       <h4>Career</h4><ul>${m.career.map(([d,t]) => `<li><b>${esc(d)}</b><span>${esc(t)}</span></li>`).join("")}</ul>
     </div></details>
   </div></article>`).join("");
-const GROUP_NAME = { postdoc:"Postdoctoral researcher", phd:"Ph.D. student", ms:"M.S. student", alumni:"Alumni" };
-const ORDER = ["postdoc","phd","ms","alumni"];
-const sortedStudents = [...students].sort((a,b) => ORDER.indexOf(a.group) - ORDER.indexOf(b.group));
-$("#students").innerHTML = sortedStudents.length ? `<h3>Researchers and students <span class="ko" style="display:inline;margin-left:8px">연구원 · 대학원생</span></h3>
-  <div class="table-scroll"><table><thead><tr><th>Name</th><th>Programme</th><th>Interests</th><th>E-mail</th></tr></thead><tbody>${
-  sortedStudents.map(m => `<tr>
-    <td><span class="name">${esc(m.ko)}</span>${blank(m.name) ? "" : ` <span class="small">${esc(m.name)}</span>`}</td>
-    <td>${esc(GROUP_NAME[m.group] || m.role)}</td>
-    <td>${blank(m.interest) ? "" : esc(m.interest)}</td>
-    <td>${blank(m.email) ? "" : `<a href="mailto:${esc(m.email)}">${esc(m.email)}</a>`}</td></tr>`).join("")}</tbody></table></div>` : "";
+/* 연구원·대학원생: 그룹별 카드 */
+const MGROUPS = [
+  ["researcher","Researchers","연구원","Researcher"],
+  ["postdoc","Researchers (Postdoctoral)","박사후연구원","Postdoc"],
+  ["phd","Students (Doctoral course)","박사과정","Ph.D. course"],
+  ["ms","Students (Master's course)","석사과정","M.S. course"],
+  ["alumni","Alumni","졸업생","Alumni"]
+];
+const mInitials = m => {
+  if (!blank(m.name)) return esc(m.name.split(/[\s-]+/).filter(Boolean).slice(0,2).map(w => w[0].toUpperCase()).join(""));
+  return blank(m.ko) ? "" : esc(m.ko.length > 2 ? m.ko.slice(1) : m.ko);
+};
+const mRow = (k, v, html) => blank(v) ? "" : `<dt>${k}</dt><dd>${html || esc(v)}</dd>`;
+$("#students").innerHTML = MGROUPS.map(([g,en,koName,level]) => {
+  const list = students.filter(m => m.group === g);
+  if (!list.length) return "";
+  return `<div class="mgroup">
+    <div class="mgroup-h"><h3>${en}<span class="ko">${koName}</span></h3><span class="count">${level} · ${list.length}</span></div>
+    <div class="mcards">${list.map(m => `<article class="mcard">
+      <div class="ph">${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.ko)}" loading="lazy">` : mInitials(m)}</div>
+      <div>
+        <p class="lv">${level}</p>
+        <p class="nm"><b>${esc(m.ko)}</b>${blank(m.name) ? "" : `<span>${blank(m.degree) ? "" : esc(m.degree) + " "}${esc(m.name)}</span>`}</p>
+        <dl>
+          ${mRow("Position", m.position)}
+          ${mRow("Interests", m.interest)}
+          ${mRow("Office", m.office)}
+          ${mRow("E-mail", m.email, blank(m.email) ? "" : `<a href="mailto:${esc(m.email)}">${esc(m.email)}</a>`)}
+        </dl>
+      </div></article>`).join("")}</div></div>`;
+}).join("");
 
 /* ---------- 논문 ---------- */
 const journals = PUBS.filter(p => p.type === "journal");
